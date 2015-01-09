@@ -2,10 +2,9 @@ package com.jikai.jojo;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.jikai.network.NetCore;
 
@@ -21,26 +20,18 @@ public class MainActivity extends Activity {
 		groupList = (LinearLayout) findViewById(R.id.group_list);
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
+	// 用来调试或向用户输出一段信息
+	public void showMessage(String content) {
+		Toast.makeText(this, content, Toast.LENGTH_LONG).show();
 	}
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
+	// 创建一个P2P通讯小组
+	public void createGroup(View view) {
+		netcore.createGroup();
 	}
 
-	public void groupInterfaceOperations(View view) {
-		netcore.discoverPeers(this, groupList);
+	// 扫描附近的P2P小组并把它们显示在组列表界面
+	public void refreshGroups(View view) {
+		netcore.discoverPeers(MainActivity.this, groupList);
 	}
 }

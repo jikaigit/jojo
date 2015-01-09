@@ -9,14 +9,32 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingLeft="5dp"
-        android:paddingRight="5dp" >
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp" >
     </LinearLayout>
 
     <Button
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:background="#ff0000"
-        android:onClick="groupInterfaceOperations" />
+        android:id="@+id/group_interface_operation_create_group_btn"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="100dp"
+        android:layout_marginLeft="1dp"
+        android:layout_marginRight="20dp"
+        android:background="@drawable/create_group"
+        android:onClick="createGroup" />
+
+    <Button
+        android:id="@+id/group_interface_operation_refresh_group_btn"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="20dp"
+        android:layout_marginLeft="1dp"
+        android:layout_marginRight="20dp"
+        android:background="@drawable/refresh_group"
+        android:onClick="refreshGroups" />
 
 </RelativeLayout>

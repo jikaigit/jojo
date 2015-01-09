@@ -20,12 +20,16 @@ public final class R {
         public static final int activity_horizontal_margin=0x7f040000;
     }
     public static final class drawable {
-        public static final int group_interface_operation_btn=0x7f020000;
-        public static final int ic_launcher=0x7f020001;
+        public static final int create_group=0x7f020000;
+        public static final int group_interface_operation_options_board=0x7f020001;
+        public static final int ic_launcher=0x7f020002;
+        public static final int refresh_group=0x7f020003;
     }
     public static final class id {
-        public static final int action_settings=0x7f080002;
-        public static final int group_id=0x7f080001;
+        public static final int action_settings=0x7f080004;
+        public static final int group_id=0x7f080003;
+        public static final int group_interface_operation_create_group_btn=0x7f080001;
+        public static final int group_interface_operation_refresh_group_btn=0x7f080002;
         public static final int group_list=0x7f080000;
     }
     public static final class layout {
@@ -36,8 +40,9 @@ public final class R {
         public static final int main=0x7f070000;
     }
     public static final class string {
-        public static final int action_settings=0x7f050001;
+        public static final int action_settings=0x7f050002;
         public static final int app_name=0x7f050000;
+        public static final int group_interface_operation_btn_text=0x7f050001;
     }
     public static final class style {
         /** 

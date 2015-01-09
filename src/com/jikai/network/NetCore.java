@@ -15,6 +15,7 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.WifiP2pManager.ActionListener;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.widget.LinearLayout;
@@ -120,6 +121,7 @@ public class NetCore {
 
 	// Start discovering the peers in around and update the peers list.
 	public void discoverPeers(final Activity updateActivity, final LinearLayout groupList) {
+		debug("列表刷新被触发了");
 		this.peersListListener = new WifiP2pManager.PeerListListener() {
 			@Override
 			public void onPeersAvailable(WifiP2pDeviceList peerList) {
@@ -135,6 +137,7 @@ public class NetCore {
 									WifiP2pDevice device = devices.next();
 									TextView groupInfo = new TextView(updateActivity);
 									groupInfo.setText(device.deviceAddress);
+									groupInfo.setTextSize(80);
 									groupList.addView(groupInfo);
 								}
 							}
@@ -148,7 +151,6 @@ public class NetCore {
 		this.wifiP2pManager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
 			@Override
 			public void onSuccess() {
-				Toast.makeText(context.getApplicationContext(), "discover peers!", Toast.LENGTH_SHORT).show();
 			}
 
 			@Override
@@ -160,7 +162,7 @@ public class NetCore {
 	}
 
 	// Connect to the peers.
-	public void connect() {
+	public void connectPeer() {
 		final WifiP2pDevice device = new WifiP2pDevice();
 		WifiP2pConfig config = new WifiP2pConfig();
 		config.deviceAddress = device.deviceAddress;
@@ -179,5 +181,26 @@ public class NetCore {
 				Toast.makeText(context.getApplicationContext(), "与设备" + device.deviceName + "连接失败", Toast.LENGTH_LONG).show();
 			}
 		});
+	}
+
+	// 创建一个P2P小组，每个小组是一个独立的聊天房间，而且小组列表
+	// 里列出的也是一个个小组(并不是每个附近P2P网路中的设备被列出)
+	public void createGroup() {
+		this.wifiP2pManager.createGroup(this.channel, new ActionListener() {
+			@Override
+			public void onSuccess() {
+				debug("小组创建成功");
+			}
+
+			@Override
+			public void onFailure(int reason) {
+				debug("小组创建失败");
+			}
+		});
+	}
+
+	// 这个类用来做调试向我显示运行信息用的
+	public void debug(String content) {
+		Toast.makeText(this.context, content, Toast.LENGTH_LONG).show();
 	}
 }

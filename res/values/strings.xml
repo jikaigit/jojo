@@ -2,6 +2,7 @@
 <resources>
 
     <string name="app_name">jojo</string>
+    <string name="group_interface_operation_btn_text">+</string>
     <string name="action_settings">Settings</string>
 
 </resources>
