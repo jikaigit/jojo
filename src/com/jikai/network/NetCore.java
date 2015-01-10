@@ -1,6 +1,7 @@
 package com.jikai.network;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import android.app.Activity;
@@ -28,7 +29,7 @@ public class NetCore {
 	private IntentFilter intentFilter;
 	private Channel channel;
 	private NetchatBdcastReceiver broadcastReceiver;
-	private WifiP2pDeviceList peersList;
+	private ArrayList<WifiP2pDevice> groupOwnerList;
 	private PeerListListener peersListListener;
 
 	/*
@@ -39,13 +40,11 @@ public class NetCore {
 		private WifiP2pManager wifiP2pManager;
 		private Channel channel;
 		private Activity activity;
-		private PeerListListener peersListListener;
 
-		public NetchatBdcastReceiver(WifiP2pManager wifiP2pManager, Channel channel, Activity activity, PeerListListener peersListListener) {
+		public NetchatBdcastReceiver(WifiP2pManager wifiP2pManager, Channel channel, Activity activity) {
 			this.wifiP2pManager = wifiP2pManager;
 			this.channel = channel;
 			this.activity = activity;
-			this.peersListListener = peersListListener;
 		}
 
 		// In this onReceive we will process different intents.
@@ -63,7 +62,7 @@ public class NetCore {
 			} else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
 				// 处理peers列表变化的action
 				if (wifiP2pManager != null) {
-					wifiP2pManager.requestPeers(channel, this.peersListListener);
+					wifiP2pManager.requestPeers(channel, peersListListener);
 				}
 			} else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
 				// Process the situations when the connections changes.
@@ -93,8 +92,6 @@ public class NetCore {
 					});
 				}
 			} else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
-				// Any device state change occur will all cause this action.
-				// Such as opening wifi or close wifi.
 			}
 		}
 	}
@@ -103,8 +100,6 @@ public class NetCore {
 		this.context = context;
 		this.wifiP2pManager = (WifiP2pManager) this.context.getApplicationContext().getSystemService(Context.WIFI_P2P_SERVICE);
 
-		// Create an IntentFilter and specify some actions which we
-		// want to filter them.
 		this.intentFilter = new IntentFilter();
 		this.intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
 		this.intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
@@ -112,39 +107,41 @@ public class NetCore {
 		this.intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
 		this.channel = this.wifiP2pManager.initialize(this.context.getApplicationContext(), this.context.getMainLooper(), null);
-		this.broadcastReceiver = new NetchatBdcastReceiver(this.wifiP2pManager, this.channel, (Activity) this.context, this.peersListListener);
+		this.broadcastReceiver = new NetchatBdcastReceiver(this.wifiP2pManager, this.channel, (Activity) this.context);
 
-		// Register my broadcast receiver and start to receive the
-		// intent broadcast.
 		this.context.registerReceiver(this.broadcastReceiver, this.intentFilter);
+		this.groupOwnerList = new ArrayList<WifiP2pDevice>();
 	}
 
-	// Start discovering the peers in around and update the peers list.
-	public void discoverPeers(final Activity updateActivity, final LinearLayout groupList) {
-		debug("列表刷新被触发了");
+	public void discoverPeers(final LinearLayout groupList) {
 		this.peersListListener = new WifiP2pManager.PeerListListener() {
 			@Override
 			public void onPeersAvailable(WifiP2pDeviceList peerList) {
-				Toast.makeText(context.getApplicationContext(), "peers list update", Toast.LENGTH_SHORT).show();
-				peersList = peerList;
+				groupOwnerList.clear();
 				final Iterator<WifiP2pDevice> devices = peerList.getDeviceList().iterator();
-
+				// 检查附近所有的Peers中的Group Owner，只有Owner才会被
+				// 记录并显示在组界面列表中
 				new Thread(new Runnable() {
 					public void run() {
-						updateActivity.runOnUiThread(new Runnable() {
+						groupList.post(new Runnable() {
 							public void run() {
 								while (devices.hasNext()) {
 									WifiP2pDevice device = devices.next();
-									TextView groupInfo = new TextView(updateActivity);
-									groupInfo.setText(device.deviceAddress);
-									groupInfo.setTextSize(80);
-									groupList.addView(groupInfo);
+									if (device.isGroupOwner()) {
+										groupOwnerList.add(device);
+
+										// 这里处理每个小组的信息的UI
+										TextView textView = new TextView(context);
+										textView.setText(device.deviceName);
+										textView.append("\r\n");
+										textView.append(device.deviceAddress);
+										groupList.addView(textView);
+									}
 								}
 							}
 						});
 					}
 				}).start();
-
 			}
 		};
 

@@ -32,6 +32,6 @@ public class MainActivity extends Activity {
 
 	// 扫描附近的P2P小组并把它们显示在组列表界面
 	public void refreshGroups(View view) {
-		netcore.discoverPeers(MainActivity.this, groupList);
+		netcore.discoverPeers(groupList);
 	}
 }
