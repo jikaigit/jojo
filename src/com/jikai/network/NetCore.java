@@ -1,7 +1,7 @@
 package com.jikai.network;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import android.app.Activity;
@@ -19,6 +19,8 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.ActionListener;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
+import android.os.Handler;
+import android.os.Message;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,7 +31,7 @@ public class NetCore {
 	private IntentFilter intentFilter;
 	private Channel channel;
 	private NetchatBdcastReceiver broadcastReceiver;
-	private ArrayList<WifiP2pDevice> groupOwnerList;
+	private HashMap<String, WifiP2pDevice> groupOwnerTable;
 	private PeerListListener peersListListener;
 
 	/*
@@ -110,14 +112,14 @@ public class NetCore {
 		this.broadcastReceiver = new NetchatBdcastReceiver(this.wifiP2pManager, this.channel, (Activity) this.context);
 
 		this.context.registerReceiver(this.broadcastReceiver, this.intentFilter);
-		this.groupOwnerList = new ArrayList<WifiP2pDevice>();
+		this.groupOwnerTable = new HashMap<String, WifiP2pDevice>();
 	}
 
 	public void discoverPeers(final LinearLayout groupList) {
 		this.peersListListener = new WifiP2pManager.PeerListListener() {
 			@Override
 			public void onPeersAvailable(WifiP2pDeviceList peerList) {
-				groupOwnerList.clear();
+				groupOwnerTable.clear();
 				final Iterator<WifiP2pDevice> devices = peerList.getDeviceList().iterator();
 				// 检查附近所有的Peers中的Group Owner，只有Owner才会被
 				// 记录并显示在组界面列表中
@@ -128,7 +130,7 @@ public class NetCore {
 								while (devices.hasNext()) {
 									WifiP2pDevice device = devices.next();
 									if (device.isGroupOwner()) {
-										groupOwnerList.add(device);
+										groupOwnerTable.put(device.deviceAddress, device);
 
 										// 这里处理每个小组的信息的UI
 										TextView textView = new TextView(context);
@@ -159,8 +161,8 @@ public class NetCore {
 	}
 
 	// Connect to the peers.
-	public void connectPeer() {
-		final WifiP2pDevice device = new WifiP2pDevice();
+	public void connectPeer(String peerAddress) {
+		WifiP2pDevice device = groupOwnerTable.get(peerAddress);
 		WifiP2pConfig config = new WifiP2pConfig();
 		config.deviceAddress = device.deviceAddress;
 		config.wps.setup = WpsInfo.PBC;
@@ -168,30 +170,51 @@ public class NetCore {
 		wifiP2pManager.connect(channel, config, new WifiP2pManager.ActionListener() {
 			@Override
 			public void onSuccess() {
-				// 连接成功
-				Toast.makeText(context.getApplicationContext(), "与设备" + device.deviceName + "连接成功", Toast.LENGTH_LONG).show();
+				debug("连接成功");
 			}
 
 			@Override
 			public void onFailure(int arg0) {
-				// 连接失败
-				Toast.makeText(context.getApplicationContext(), "与设备" + device.deviceName + "连接失败", Toast.LENGTH_LONG).show();
+				debug("连接失败");
 			}
 		});
 	}
 
 	// 创建一个P2P小组，每个小组是一个独立的聊天房间，而且小组列表
 	// 里列出的也是一个个小组(并不是每个附近P2P网路中的设备被列出)
-	public void createGroup() {
+	public void createGroup(final Handler notifySuccessOrFailed) {
 		this.wifiP2pManager.createGroup(this.channel, new ActionListener() {
 			@Override
 			public void onSuccess() {
-				debug("小组创建成功");
+				Message message = new Message();
+				message.what = 1;
+				notifySuccessOrFailed.sendMessage(message);
 			}
 
 			@Override
 			public void onFailure(int reason) {
-				debug("小组创建失败");
+				Message message = new Message();
+				message.what = -1;
+				notifySuccessOrFailed.sendMessage(message);
+			}
+		});
+	}
+
+	// 解散聊天小组
+	public void dissolveGroup(final Handler notifySuccessOrFailed) {
+		this.wifiP2pManager.removeGroup(this.channel, new ActionListener() {
+			@Override
+			public void onSuccess() {
+				Message message = new Message();
+				message.what = 2;
+				notifySuccessOrFailed.sendMessage(message);
+			}
+
+			@Override
+			public void onFailure(int reason) {
+				Message message = new Message();
+				message.what = -2;
+				notifySuccessOrFailed.sendMessage(message);
 			}
 		});
 	}
