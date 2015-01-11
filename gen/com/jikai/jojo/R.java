@@ -21,10 +21,17 @@ public final class R {
         public static final int activity_vertical_margin=0x7f040001;
     }
     public static final class drawable {
-        public static final int create_group=0x7f020000;
-        public static final int group_interface_operation_options_board=0x7f020001;
-        public static final int ic_launcher=0x7f020002;
-        public static final int refresh_group=0x7f020003;
+        public static final int big_gray_round=0x7f020000;
+        public static final int big_white_round=0x7f020001;
+        public static final int button=0x7f020002;
+        public static final int group_card_blue=0x7f020003;
+        public static final int group_card_cyan=0x7f020004;
+        public static final int group_card_green=0x7f020005;
+        public static final int group_card_orige=0x7f020006;
+        public static final int group_card_purple=0x7f020007;
+        public static final int group_card_yellow=0x7f020008;
+        public static final int group_interface_operation_options_board=0x7f020009;
+        public static final int ic_launcher=0x7f02000a;
     }
     public static final class id {
         public static final int action_settings=0x7f080003;
@@ -41,11 +48,12 @@ public final class R {
         public static final int main=0x7f070001;
     }
     public static final class string {
-        public static final int action_settings=0x7f050002;
+        public static final int action_settings=0x7f050001;
         public static final int app_name=0x7f050000;
-        public static final int group_interface_operation_btn_text=0x7f050001;
+        public static final int btn_create_group=0x7f050002;
+        public static final int btn_refresh_group=0x7f050003;
         public static final int hello_world=0x7f050004;
-        public static final int title_activity_group_chat=0x7f050003;
+        public static final int title_activity_group_chat=0x7f050005;
     }
     public static final class style {
         /** 

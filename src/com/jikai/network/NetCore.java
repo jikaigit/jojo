@@ -1,6 +1,5 @@
 package com.jikai.network;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -14,6 +13,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.net.NetworkInfo;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
@@ -26,9 +26,10 @@ import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.widget.SlidingPaneLayout.LayoutParams;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -117,7 +118,7 @@ public class NetCore {
 
 														}
 													}
-												}).start();
+												});
 											}
 										} catch (IOException e) {
 											debug("组长启动监听失败");
@@ -171,7 +172,7 @@ public class NetCore {
 		this.asyncIsOkHandler = asyncIsOkHandler;
 	}
 
-	public void discoverPeers(final LinearLayout groupList) {
+	public void discoverPeers(final RelativeLayout groupList) {
 		this.peersListListener = new WifiP2pManager.PeerListListener() {
 			@Override
 			public void onPeersAvailable(WifiP2pDeviceList peerList) {
@@ -190,15 +191,20 @@ public class NetCore {
 										groupOwnerTable.put(device.deviceAddress, device);
 
 										// 这里处理每个小组的信息的UI
-										final TextView textView = new TextView(context);
-										textView.append(device.deviceAddress);
-										textView.setOnClickListener(new OnClickListener() {
+										final TextView groupCard = new TextView(context);
+										groupCard.setPadding(30, 30, 30, 30);
+										groupCard.setTextColor(Color.rgb(250, 250, 250));
+										groupCard.setTextSize(20);
+										groupCard.setBackgroundColor(Color.rgb(11, 33, 250));
+										groupCard.setText(device.deviceAddress);
+										groupCard.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+										groupCard.setOnClickListener(new OnClickListener() {
 											@Override
 											public void onClick(View v) {
-												connectPeer(textView.getText().toString());
+												connectPeer(groupCard.getText().toString());
 											}
 										});
-										groupList.addView(textView);
+										groupList.addView(groupCard);
 									}
 								}
 							}

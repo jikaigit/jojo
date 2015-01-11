@@ -2,39 +2,79 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#EFEFEF"
     tools:context="com.jikai.jojo.MainActivity" >
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/group_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
+        android:layout_marginBottom="60dp"
+        android:layout_marginTop="60dp"
         android:paddingLeft="15dp"
         android:paddingRight="15dp" >
-    </LinearLayout>
+    </RelativeLayout>
+
+    <!-- 外层的按钮套 -->
+
+    <View
+        android:layout_width="350dp"
+        android:layout_height="350dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="-281dp"
+        android:background="@drawable/big_gray_round" />
+
+    <View
+        android:layout_width="350dp"
+        android:layout_height="350dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="-281dp"
+        android:background="@drawable/big_gray_round" />
+
+    <!-- 内层的按钮套 -->
+
+    <View
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="-134dp"
+        android:background="@drawable/big_white_round" />
+
+    <View
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="-134dp"
+        android:background="@drawable/big_white_round" />
 
     <Button
         android:id="@+id/group_interface_operation_create_group_btn"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginBottom="115dp"
-        android:layout_marginLeft="1dp"
-        android:layout_marginRight="20dp"
-        android:background="@drawable/create_group"
-        android:onClick="createGroup" />
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/button"
+        android:onClick="createGroup"
+        android:text="@string/btn_create_group"
+        android:textColor="#FDFDFD"
+        android:textSize="16sp" />
 
     <Button
         android:id="@+id/group_interface_operation_refresh_group_btn"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginBottom="20dp"
-        android:layout_marginLeft="1dp"
-        android:layout_marginRight="20dp"
-        android:background="@drawable/refresh_group"
-        android:onClick="refreshGroups" />
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/button"
+        android:onClick="refreshGroups"
+        android:text="@string/btn_refresh_group"
+        android:textColor="#FDFDFD"
+        android:textSize="13sp" />
 
 </RelativeLayout>

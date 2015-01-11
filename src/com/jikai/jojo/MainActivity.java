@@ -6,14 +6,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.View;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.jikai.network.NetCore;
 
 public class MainActivity extends Activity {
 	private NetCore netcore;
-	private LinearLayout groupList;
+	private RelativeLayout groupList;
 	private Handler asyncIsOkHandler;
 
 	@Override
@@ -49,7 +49,7 @@ public class MainActivity extends Activity {
 			}
 		};
 		netcore = new NetCore(MainActivity.this, asyncIsOkHandler);
-		groupList = (LinearLayout) findViewById(R.id.group_list);
+		groupList = (RelativeLayout) findViewById(R.id.group_list);
 	}
 
 	// 用来调试或向用户输出一段信息
