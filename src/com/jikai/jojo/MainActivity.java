@@ -26,7 +26,7 @@ public class MainActivity extends Activity {
 				switch (message.what) {
 				case 11:
 					Intent intent = new Intent(MainActivity.this, GroupChatActivity.class);
-					startActivity(intent);
+					startActivityForResult(intent, 1);
 					break;
 				case 12:
 					showMessage("创建小组失败，请尝试重新创建小组");
@@ -52,9 +52,21 @@ public class MainActivity extends Activity {
 		groupList = (RelativeLayout) findViewById(R.id.group_list);
 	}
 
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		// TODO Auto-generated method stub
+		super.onActivityResult(requestCode, resultCode, data);
+		if (data != null) {
+			String name = data.getStringExtra("group_release");
+			if (requestCode == 1 && resultCode == 1) {
+				netcore.dissolveGroup(asyncIsOkHandler);
+			}
+		}
+
+	}
+
 	// 用来调试或向用户输出一段信息
 	public void showMessage(String content) {
-		Toast.makeText(this, content, Toast.LENGTH_LONG).show();
+		Toast.makeText(this, content, Toast.LENGTH_SHORT).show();
 	}
 
 	// 创建一个P2P通讯小组
@@ -64,6 +76,6 @@ public class MainActivity extends Activity {
 
 	// 扫描附近的P2P小组并把它们显示在组列表界面
 	public void refreshGroups(View view) {
-		netcore.discoverPeers(groupList);
+		netcore.discoverPeers(MainActivity.this, groupList);
 	}
 }

@@ -3,17 +3,20 @@ package com.jikai.network;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.logging.SocketHandler;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
 import android.net.NetworkInfo;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
@@ -26,12 +29,16 @@ import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.widget.SlidingPaneLayout.LayoutParams;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.jikai.jojo.ColorCardSelector;
+import com.jikai.jojo.R;
 
 class NetConstants {
 	public static int ServerPort = 15280;
@@ -46,6 +53,8 @@ public class NetCore {
 	private HashMap<String, WifiP2pDevice> groupOwnerTable;
 	private PeerListListener peersListListener;
 	private Handler asyncIsOkHandler;
+	private boolean isInGroup;
+	private ServerSocket serverSocket;
 
 	/*
 	 * This class is used to wrap the BroadcastReceiver to receive the intent
@@ -94,40 +103,29 @@ public class NetCore {
 							final WifiP2pInfo info = wifiP2pInfo;
 
 							if (info.groupFormed && info.isGroupOwner) {
+								if (!isInGroup)
+									return;
+								// 创建监听端口开始接受其他成员的连接
 								new Thread(new Runnable() {
 									@Override
 									public void run() {
 										try {
-											ServerSocket listener = new ServerSocket(NetConstants.ServerPort, 20);
+											serverSocket = new ServerSocket(NetConstants.ServerPort);
 											while (true) {
-												// 为每个Peer连接创建一个单独的线程来维持并处理
-												// 网络操作
-												Socket acceptedSocket = listener.accept();
-												final Socket clientPeer = acceptedSocket;
-												new Thread(new Runnable() {
-													@Override
-													public void run() {
-														byte[] buffer = new byte[512];
-														try {
-															InputStream peerInput = clientPeer.getInputStream();
-															while (true) {
-																int readlen = peerInput.read(buffer);
-																// 这里向界面显示Peer发送的内容
-															}
-														} catch (IOException e) {
-
-														}
-													}
-												});
+												Socket peerClient = serverSocket.accept();
+												// PeerConnection peerConn = new
+												// PeerConnection(peerClient);
+												// peerConn.startProcessing();
+												debug("建立了一条连接");
 											}
 										} catch (IOException e) {
-											debug("组长启动监听失败");
-										} catch (Exception e) {
-											debug("未知连接错误");
+											debug("网络错误");
 										}
 									}
 								}).start();
+
 							} else if (info.groupFormed) {
+								debug("已经成为组员");
 								// 这里执行普通组员的任务
 								// 通常是创建一个客户端向组长的服务器发送请求
 								new Thread(new Runnable() {
@@ -135,8 +133,16 @@ public class NetCore {
 									public void run() {
 										try {
 											InetAddress addr = info.groupOwnerAddress;
-											Socket socket = new Socket(addr, NetConstants.ServerPort);
-											debug("客户端连接了：" + addr.getHostAddress());
+											final Socket socket = new Socket(addr, NetConstants.ServerPort);
+											SocketHandler socketHandler = new SocketHandler(addr.getHostAddress(), NetConstants.ServerPort) {
+												public void close() {
+													try {
+														socket.close();
+													} catch (IOException e) {
+
+													}
+												}
+											};
 											socket.close();
 										} catch (IOException e) {
 											debug("客户端连接错误");
@@ -151,6 +157,43 @@ public class NetCore {
 				}
 			} else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
 			}
+		}
+	}
+
+	class PeerConnection {
+		private Socket peerSocket;
+		private Thread worker;
+
+		public PeerConnection(Socket peer) {
+			this.peerSocket = peer;
+			this.worker = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						byte[] buffer = new byte[1024];
+						InputStream peerInputs = peerSocket.getInputStream();
+						while (true) {
+							int readlen = peerInputs.read(buffer);
+							if (readlen > 0) {
+								// 对内容进行输出
+							}
+						}
+					} catch (IOException e) {
+					}
+				}
+			});
+		}
+
+		public void startProcessing() {
+			this.worker.start();
+		}
+
+		public void stopProcessing() {
+			this.worker.stop();
+		}
+
+		public String getPeerIp() {
+			return peerSocket.getInetAddress().getHostAddress();
 		}
 	}
 
@@ -170,9 +213,10 @@ public class NetCore {
 		this.context.registerReceiver(this.broadcastReceiver, this.intentFilter);
 		this.groupOwnerTable = new HashMap<String, WifiP2pDevice>();
 		this.asyncIsOkHandler = asyncIsOkHandler;
+		this.isInGroup = false;
 	}
 
-	public void discoverPeers(final RelativeLayout groupList) {
+	public void discoverPeers(final Activity updateActivity, final RelativeLayout groupList) {
 		this.peersListListener = new WifiP2pManager.PeerListListener() {
 			@Override
 			public void onPeersAvailable(WifiP2pDeviceList peerList) {
@@ -185,19 +229,18 @@ public class NetCore {
 					public void run() {
 						groupList.post(new Runnable() {
 							public void run() {
+								final LayoutInflater inflater = updateActivity.getLayoutInflater();
+								final View theViewToGetGroupCardView = inflater.inflate(R.layout.group_card_layout, null);
+
 								while (devices.hasNext()) {
 									WifiP2pDevice device = devices.next();
 									if (device.isGroupOwner()) {
 										groupOwnerTable.put(device.deviceAddress, device);
 
 										// 这里处理每个小组的信息的UI
-										final TextView groupCard = new TextView(context);
-										groupCard.setPadding(30, 30, 30, 30);
-										groupCard.setTextColor(Color.rgb(250, 250, 250));
-										groupCard.setTextSize(20);
-										groupCard.setBackgroundColor(Color.rgb(11, 33, 250));
+										final TextView groupCard = (TextView) theViewToGetGroupCardView.findViewById(R.id.group_card);
+										groupCard.setBackgroundResource(ColorCardSelector.selectOneCard());
 										groupCard.setText(device.deviceAddress);
-										groupCard.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 										groupCard.setOnClickListener(new OnClickListener() {
 											@Override
 											public void onClick(View v) {
@@ -236,6 +279,7 @@ public class NetCore {
 		wifiP2pManager.connect(channel, config, new WifiP2pManager.ActionListener() {
 			@Override
 			public void onSuccess() {
+				isInGroup = true;
 				Message message = new Message();
 				message.what = 31;
 				asyncIsOkHandler.sendMessage(message);
@@ -256,6 +300,7 @@ public class NetCore {
 		this.wifiP2pManager.createGroup(this.channel, new ActionListener() {
 			@Override
 			public void onSuccess() {
+				isInGroup = true;
 				Message message = new Message();
 				message.what = 11;
 				asyncIsOkHandler.sendMessage(message);
@@ -275,6 +320,12 @@ public class NetCore {
 		this.wifiP2pManager.removeGroup(this.channel, new ActionListener() {
 			@Override
 			public void onSuccess() {
+				isInGroup = false;
+				try {
+					serverSocket.close();
+				} catch (IOException e) {
+					debug("关闭组长服务端口失败");
+				}
 				Message message = new Message();
 				message.what = 21;
 				notifySuccessOrFailed.sendMessage(message);
@@ -292,5 +343,23 @@ public class NetCore {
 	// 这个类用来做调试向我显示运行信息用的
 	public void debug(String content) {
 		Toast.makeText(this.context, content, Toast.LENGTH_SHORT).show();
+	}
+
+	// 获取本设备的IP地址
+	public String getLocalIpAddress() {
+		try {
+			for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+				NetworkInterface intf = en.nextElement();
+				for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+					InetAddress inetAddress = enumIpAddr.nextElement();
+					if (!inetAddress.isLoopbackAddress()) {
+						return inetAddress.getHostAddress().toString();
+					}
+				}
+			}
+		} catch (SocketException ex) {
+			Log.e("WifiPreference IpAddress", ex.toString());
+		}
+		return null;
 	}
 }

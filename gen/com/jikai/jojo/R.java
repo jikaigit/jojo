@@ -34,7 +34,8 @@ public final class R {
         public static final int ic_launcher=0x7f02000a;
     }
     public static final class id {
-        public static final int action_settings=0x7f080003;
+        public static final int action_settings=0x7f080004;
+        public static final int group_card=0x7f080003;
         public static final int group_interface_operation_create_group_btn=0x7f080001;
         public static final int group_interface_operation_refresh_group_btn=0x7f080002;
         public static final int group_list=0x7f080000;
@@ -42,6 +43,8 @@ public final class R {
     public static final class layout {
         public static final int activity_group_chat=0x7f030000;
         public static final int activity_main=0x7f030001;
+        public static final int group_card_layout=0x7f030002;
+        public static final int group_chat_view=0x7f030003;
     }
     public static final class menu {
         public static final int group_chat=0x7f070000;

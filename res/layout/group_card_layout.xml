@@ -1,0 +1,6 @@
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/group_card"
+    android:layout_width="130dp"
+    android:layout_height="130dp"
+    android:textColor="#FDFDFD"
+    android:textSize="12sp" />
